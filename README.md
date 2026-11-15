@@ -2,7 +2,7 @@
 
 面向中文开发者的 AI 编程与 Agent 开发实战指南：Codex、Claude Code、MCP、Skills 与自动化流水线。所有教程以「一次真实任务 → 可验证结果」为组织方式，站点为纯静态输出，搜索在浏览器内完成，不收集访客数据。
 
-目标域名：<https://aiguide.zenty.top>（首版本地构建完成，尚未部署上线；线上状态需所有者部署后确认）
+线上地址：<https://aiguide.zenty.top/>（Cloudflare Workers 静态资源 + 自定义域名）
 
 ## 技术栈
 
@@ -50,7 +50,9 @@ src/
   lib/                   搜索、SEO 辅助
   scripts/               主题、导航、搜索、复制、目录、进度
   styles/global.css      设计变量与组件样式
-public/                  CNAME、.nojekyll、favicon、OG 图
+public/                 .nojekyll、favicon、OG 图、字体、示例文件
+worker.js               Worker 入口：HTTP 跳 HTTPS + 静态资源
+wrangler.jsonc          Cloudflare 部署配置（assets、routes、account）
 tests/                   smoke.mjs、e2e.mjs、静态服务器
 scripts/generate-og.mjs  OG 图生成
 ```
@@ -81,28 +83,29 @@ featured: false
 - **sitemap 的 `lastmod` 来自文章页的 Article `dateModified`。** 构建时 `astro.config.mjs` 的 sitemap 集成从已生成的 `/articles/<id>/index.html` 读回该值，因此两处永远一致；非文章页故意不输出 `lastmod`，避免用构建时间冒充内容更新时间。改日期只改 frontmatter，不用动配置。
 - **标题与描述唯一。** 冒烟测试会检查所有可索引页面的 `<title>` 与 meta description 不重复，新增页面后跑 `npm run test:smoke` 即可发现冲突。
 - **可索引范围。** `/search/` 与 404 输出 `noindex, follow` 并已从 sitemap 排除；`robots.txt` 不屏蔽 `/search/`，否则搜索引擎读不到 noindex。
-- **尚未做站后验证。** 目前只验证了本地构建产物，没有部署，也没有在 Search Console、Bing Webmaster Tools 或真实搜索里确认抓取、索引与排名；上线后需人工提交 sitemap、检查覆盖率报告，并观察实际查询表现。
+- **站后验证待补。** 站点已部署，但尚未在 Search Console、Bing Webmaster Tools 或真实搜索里确认抓取、索引与排名；需人工提交 `https://aiguide.zenty.top/sitemap-index.xml`、检查覆盖率报告并观察实际查询表现。
 
-## 部署（GitHub Pages）
+## 部署（Cloudflare Workers）
 
-仓库内已包含 `.github/workflows/deploy.yml`：`npm ci` → `npm run check` → `npm run build` → `npm run test:smoke`（针对 `dist/` 的产物门禁）→ 上传 `dist` → `deploy-pages`，权限仅 `contents: read`、`pages: write`、`id-token: write`。默认分支为 `main` 时推送即部署。浏览器测试（`npm run test:e2e`）需要本机浏览器，未放进 CI。
+线上地址 <https://aiguide.zenty.top/> 由 Cloudflare Worker 提供静态资源，构建产物 `dist/` 不进仓库，本地或 CI 构建后上传：
+
+- `wrangler.jsonc`：`assets.directory` 指向 `dist`，`assets.binding` 为 `ASSETS`，`not_found_handling: "404-page"` 提供自定义 404；`routes` 以 `custom_domain: true` 绑定 `aiguide.zenty.top`。
+- `worker.js`：把 `http://` 301 到 `https://`，其余请求转交 `env.ASSETS`。zone 级的 Always Use HTTPS 需要 zone 编辑权限，所以放在代码里。
+- 部署命令：`npm run deploy`（`npm run build && wrangler deploy`）；`npx wrangler tail` 可看实时日志。
+- CI：`.github/workflows/deploy.yml` 在推送到 `main` 时依次跑 `npm ci` → `npm run check` → `npm run build` → `npm run test:smoke`；仓库 Secrets 配了 `CLOUDFLARE_API_TOKEN`（权限 `Workers Scripts:Edit`）才会继续执行 `npx wrangler deploy`，没配就只做校验、跳过部署。浏览器测试（`npm run test:e2e`）需要本机浏览器，不进 CI。
 
 ### 部署形态限制
 
-本实现只支持**自定义域名根部署**（`https://aiguide.zenty.top/`）。站内链接、canonical、搜索索引地址（`/search-index.json`）、RSS 与 sitemap 都按根路径绝对地址生成，**不支持** `https://<账号>.github.io/<仓库>/` 这类 project 子路径。要支持子路径需要全站改为相对路径或引入 `base` 前缀适配，不在当前范围内；只改 `site`、`base` 与 `CNAME` 并不够。
+本实现只支持**自定义域名根部署**（`https://aiguide.zenty.top/`）。站内链接、canonical、搜索索引地址（`/search-index.json`）、RSS 与 sitemap 都按根路径绝对地址生成，**不支持** `https://<账号>.github.io/<仓库>/` 这类 project 子路径。要支持子路径需要全站改为相对路径或引入 `base` 前缀适配，不在当前范围内；只改 `site` 与 `base` 并不够。
 
-### 步骤
+### 首次绑定与自查
 
-以下步骤需要仓库所有者按实际情况执行，代码里没有写死账号：
-
-1. 创建仓库并推送本项目，确认默认分支为 `main`；在 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。
-2. 先在 **Settings → Pages → Custom domain** 填入 `aiguide.zenty.top` 并保存；GitHub 随即开始 DNS 检查与证书签发，域名校验状态也在同一页面显示（若提示 unverified，先按提示完成域名验证再继续）。用 Actions 发布时 `public/CNAME` 会被忽略，自定义域名以 Pages 设置为准，该文件仅作声明用途保留。
-3. 在域名服务商处为 `aiguide` 添加 **CNAME** 记录，值按 GitHub 文档为 `<你的账号>.github.io`（`USERNAME.github.io` 或 `ORGANIZATION.github.io`，不含仓库名；无法由本项目推断）。同时确认没有多余的 `A`/`AAAA`/`CNAME` 指向其他主机，否则证书会签发失败；若配置了 CAA 记录，需包含 `letsencrypt.org`。
-4. **Cloudflare 用户首次部署**：把该 CNAME 记录的 Proxy status 设为 **DNS only（灰云）**。Cloudflare 代理会让流量先经其网络，GitHub 的自动 DNS 检查与 Let's Encrypt 证书签发因此无法完成，常见表现是 `Enforce HTTPS` 不可勾选或 `InvalidDNSError`。证书签发完成、Pages 显示域名检查通过后，再决定是否开启代理；如需开启，需自行确认 Cloudflare 的 SSL/TLS 模式与缓存行为，并重新验证 HTTPS 与重定向。
-5. 保存自定义域名后 GitHub 会自动做 DNS 检查并申请 Let's Encrypt 证书，通常几分钟内完成，官方文档说明最长可能需要一小时；若长时间未完成，可移除域名再重新添加以重试签发。
-6. 证书生效后勾选 **Enforce HTTPS**，并实际确认 `https://aiguide.zenty.top/` 能访问、HTTP 会跳转 HTTPS、`/articles/codex-first-task/` 等深层链接正常。
-
-依据：[Securing your GitHub Pages site with HTTPS](https://docs.github.com/en/pages/getting-started-with-github-pages/securing-your-github-pages-site-with-https)、[Troubleshooting custom domains and GitHub Pages](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/troubleshooting-custom-domains-and-github-pages)、[Cloudflare DNS proxy status](https://developers.cloudflare.com/dns/proxy-status/)。Cloudflare 代理与 GitHub 证书签发的冲突未写入上述 GitHub 文档，属于基于代理机制与社区实践的说明，部署时以 Pages 页面的实际提示为准。
+1. 构建：`npm run build`，产物落在 `dist/`。
+2. 上传：`npx wrangler deploy`（等同 `npm run deploy`），更新 Worker `aiguide`。
+3. 自定义域名由 `wrangler.jsonc` 的 `routes` 声明，首次部署时 Cloudflare 自动在 `zenty.top` 下创建 `aiguide` 的 DNS 记录（橙云代理）并签发证书，不需要手工加 CNAME，也不要把这条记录改成「仅 DNS」。
+4. 改域名只需修改 `routes` 后重新 deploy，或在控制台 Workers → Custom Domains 里增删。
+5. 上线自查：`/`、`/articles/<id>/`、`/search/`、`/rss.xml`、`/sitemap-index.xml` 返回 200；`http://` 301 到 `https://`；随机路径返回自定义 404 页面。
+6. 配置了 `routes` 后 `*.workers.dev` 默认关闭；需要预览地址时在 `wrangler.jsonc` 里显式加 `"workers_dev": true`。
 
 ## 验证记录
 

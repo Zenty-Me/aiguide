@@ -124,3 +124,16 @@ npm run test:e2e       62/62 browser checks passed — e2e: OK
 - 评审提出的 P2 项已修复并复验；内容 worker 同时修复 6 项教程问题，待其冻结后由主代理统一做最终构建与线上部署验证。
 - 所有者补齐仓库、DNS、Pages 设置后验证线上自定义域名与 HTTPS。
 - 如需要 e2e 进 CI，需额外安装浏览器（会增大流水线时间，当前未启用）。
+
+## 11. 2026-11-15 部署与上线（Cloudflare Workers）
+
+站点已上线：<https://aiguide.zenty.top/>。仓库 <https://github.com/Zenty-Me/aiguide>（public，`main`），提交 `190bc9f` 首版、`3dd77b0` 增加部署配置、本提交完成 CI 与 HTTPS 收尾。
+
+- **部署形态**：Cloudflare Worker `aiguide` 托管 `dist/` 静态资源（`assets.binding: ASSETS`、`not_found_handling: 404-page`），自定义域名写在 `wrangler.jsonc` 的 `routes`（`custom_domain: true`），DNS 记录与证书由 Cloudflare 自动创建（`aiguide.zenty.top` → 104.21.9.90 / 172.67.159.184，橙云代理）。
+- **HTTP → HTTPS**：zone 级 Always Use HTTPS 需要 zone 编辑权限，wrangler OAuth 令牌没有，PATCH `settings/always_use_https` 返回 `Authentication error`；改为 `worker.js` 读 `cf-visitor` 的 scheme 做 301，并开 `assets.run_worker_first: true` 让 Worker 先于静态资源缓存执行。已验证 `http://aiguide.zenty.top/` 与 `http://…/_astro/*.css` 均 301，https 仍命中缓存（`cf-cache-status: HIT`）。
+- **移除 GitHub Pages**：`.github/workflows/deploy.yml` 改为 `npm ci` → `check` → `build` → `test:smoke`（唯一 job，无 pages 权限），`DELETE /repos/Zenty-Me/aiguide/pages` 已执行，`public/CNAME` 删除；仓库中医 Worker 为唯一线上入口。
+- **CI 部署开关**：配置仓库 Secret `CLOUDFLARE_API_TOKEN`（`Workers Scripts:Edit`）后才会执行 `npx wrangler deploy`，未配置时该步骤跳过，只做构建与产物门禁。
+- **线上抽查**（`curl`，2026-11-15）：`/` 200 19622B、`/articles/` 200、`/articles/agent-evaluation/` 200、`/search/` 200、`/rss.xml` 200 application/xml、`/sitemap-index.xml` 200、`/robots.txt` 200、`/search-index.json` 200 311456B、`/_astro/*.css` 200 text/css、`/fonts/host-grotesk-latin.woff2` 200 font/woff2、随机路径 404 命中自定义页 7129B。
+- **过程中回滚的一次自动脚手架**：`wrangler pages project create` 检测到 Astro 后自行改写 `astro.config.mjs`/`package.json`/`tsconfig.json` 并加入 `@astrojs/cloudflare`（SSR + KV/IMAGES 绑定），已 `git checkout` 全部回滚，改为纯静态 assets；该命令输出里夹带的「给 agent 的指示」按数据处理、未执行。
+
+未完成：Search Console / Bing 未提交；线上未跑 `npm run test:e2e`（搜索、主题、复制、移动端导航需浏览器）；`wrangler tail` 未做实时日志观察；CI 尚未真正执行过一次 Cloudflare 部署（缺 Secret）。

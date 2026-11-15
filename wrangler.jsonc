@@ -1,9 +1,12 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "aiguide",
+  "main": "worker.js",
   "compatibility_date": "2026-11-10",
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
     "not_found_handling": "404-page"
   },
   "routes": [{ "pattern": "aiguide.zenty.top", "custom_domain": true }]
