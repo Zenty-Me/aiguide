@@ -50,7 +50,7 @@ src/
   lib/                   搜索、SEO 辅助
   scripts/               主题、导航、搜索、复制、目录、进度
   styles/global.css      设计变量与组件样式
-public/                 .nojekyll、favicon、OG 图、字体、示例文件
+public/                 favicon、OG 图、字体、示例文件
 wrangler.jsonc          Cloudflare 部署配置（assets、routes）
 tests/                   smoke.mjs、e2e.mjs、静态服务器
 scripts/generate-og.mjs  OG 图生成

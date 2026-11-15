@@ -3,21 +3,21 @@ title: "用 GitHub Actions 给静态站点加检查与构建门禁"
 description: "为 Astro 静态站点写一条最小 CI：只读权限、固定 Node、显式工作目录，依次跑 check、build 和 smoke test，并避开 PR 密钥风险。"
 category: "automation"
 publishedAt: 2026-11-14
-updatedAt: 2026-11-14
+updatedAt: 2026-11-15
 difficulty: "进阶"
 order: 510
 tags: ["GitHub Actions", "CI", "静态站点"]
 featured: false
 ---
 
-静态站点没有服务器要部署，但仍然需要门禁：Markdown frontmatter 写错、内部链接指向不存在的文章、构建时才暴露的导入错误，都应该在合并前失败，而不是等 Pages 发布后才发现。本文给这个 Astro 项目加一条最小 CI，只做三件事：类型/内容检查、生产构建、冒烟测试。它不需要任何密钥，也不会执行 PR 里的任意脚本去访问生产环境。
+静态站点没有服务器要部署，但仍然需要门禁：Markdown frontmatter 写错、内部链接指向不存在的文章、构建时才暴露的导入错误，都应该在合并前失败，而不是等部署上线后才发现。本文给这个 Astro 项目加一条最小 CI，只做三件事：类型/内容检查、生产构建、冒烟测试。它不需要任何密钥，也不会执行 PR 里的任意脚本去访问生产环境。
 
 ## 前置条件
 
 - 仓库已有 `package.json` 和 `package-lock.json`，并定义了 `check`、`build`、`test:smoke` 三个脚本。
 - 站点构建不需要外部 API 或私密环境变量；如果确实需要，先读 [CI 中的密钥边界](/articles/automation-secrets/)，不要直接把 secret 塞进这条工作流。
 - 先读 [自动化流水线](/articles/automation-pipeline/) 和 [构建检查点](/articles/automation-checkpoints/)，了解这条 CI 在整体流程中的位置。
-- 理解现有部署工作流。本项目的 `.github/workflows/deploy.yml` 已使用 `actions/checkout@v4`、`actions/setup-node@v4`、`actions/upload-pages-artifact@v3` 和 `actions/deploy-pages@v4`；本文沿用仓库已有的 action 版本，不声称它们是最新版。
+- 理解现有部署工作流。本项目的 `.github/workflows/deploy.yml` 已使用 `actions/checkout@v4`、`actions/setup-node@v4`，构建后在配置了 `CLOUDFLARE_API_TOKEN` 时执行 `npx wrangler deploy` 上传到 Cloudflare Workers；本文沿用仓库已有的 action 版本，不声称它们是最新版。
 - 不需要在本机安装 GitHub CLI；下面的 YAML 可以先用本地 YAML 解析器做语法检查。
 
 ## 工作流全文
@@ -63,7 +63,7 @@ jobs:
 这段 YAML 的每个字段都有作用：
 
 - `on.pull_request` 在 PR 更新时运行；`push.branches: [main]` 保证合并后主干也验证一次。没有配置 `paths` 过滤，因为内容、配置和测试都可能影响构建，漏跑比多跑更贵。
-- `permissions.contents: read` 是顶层最小权限。构建只需要读代码，不需要写 issue、PR 或 Pages；写权限留给单独的部署工作流。
+- `permissions.contents: read` 是顶层最小权限。构建只需要读代码，不需要写 issue、PR 或触发部署；写权限留给单独的部署工作流。
 - `concurrency` 按 ref 分组，新提交会取消同一 PR 的旧运行，避免排队浪费；`cancel-in-progress` 对 PR 安全，对发布分支要谨慎。
 - `timeout-minutes: 15` 防止卡死的步骤占满额度；`defaults.run.working-directory: .` 明确所有 `run` 都在仓库根目录执行。
 - `actions/checkout@v4` 的 `persist-credentials: false` 避免把 token 留在 `.git/config` 里，后续脚本即使被注入也拿不到推送凭据。

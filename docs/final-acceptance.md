@@ -1,5 +1,7 @@
 # 最终集成验收
 
+> **状态说明（2026-11-15 补）**：本文记录 2026-11-14 的验收结果。当时使用的 GitHub Pages 工作流已弃用，站点现由 Cloudflare Workers 静态资源托管，详见 `docs/verification.md` §11。
+
 验收日期：2026-11-14（Asia/Shanghai）。项目位置：`D:/code/aiguide`。
 
 ## 主代理实际执行

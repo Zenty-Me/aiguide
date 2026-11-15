@@ -54,6 +54,6 @@
 - 产品定位：面向中文开发者的 AI 编程工具、Agent 开发和自动化工作流教程网站，内容以 Codex、Claude Code、MCP、Skills、AI Agent 为核心。
 - 参考边界：内容组织和阅读体验可借鉴 codexguide.io，界面、文案与素材必须原创，不逐页照搬。
 - 首版范围：首页、分类/学习路线、文章详情、站内搜索、基础 SEO、移动端体验；可用后再扩展非核心功能。
-- 技术栈：先看仓库现状；新项目优先 Astro + TypeScript + Tailwind CSS，以 GitHub Pages + 自有域名静态部署，无明确需求不引入后端、数据库或付费服务。
+- 技术栈：先看仓库现状；新项目优先 Astro + TypeScript + Tailwind CSS，以 Cloudflare Workers 静态资源 + 自有域名部署（`wrangler.jsonc` 纯 assets，无 `main`），无明确需求不引入后端、数据库或付费服务。
 - 内容与 SEO：用 Markdown/MDX 维护；站点地图、规范链接、标题描述、社交分享信息、站内链接和代码块阅读体验要齐。
 - 验收：关键页面路由、内容渲染、搜索、移动端布局、SEO 生成结果、生产构建；部署前确认实际仓库、分支、域名和环境配置，不臆测现状。

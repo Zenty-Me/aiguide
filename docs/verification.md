@@ -1,5 +1,7 @@
 # Zenty AI Guide — 实现与验证记录
 
+> **状态说明（2026-11-15 补）**：本文是时间记录，§1–§10 反映的是 2026-11-14 的 GitHub Pages 阶段结论。站点的实际部署形态已改为 Cloudflare Workers 静态资源，**当前状态以 §11 为准**；上文提到的 `public/CNAME`、`.nojekyll`、Pages 工作流与 Pages 设置项均已移除。
+
 记录人：Pi 开发 worker（task_c3fdaff06006）
 时间：2026-11-14，最后一次完整验证 15:20（本地时间；内容冻结后修复搜索索引断言并全量重跑 check + build + smoke + e2e）
 目标站点：<https://aiguide.zenty.top>

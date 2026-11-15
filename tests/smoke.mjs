@@ -115,7 +115,6 @@ const expectedRoutes = [
   '/sitemap-index.xml',
   '/favicon.svg',
   '/og-default.png',
-  '/.nojekyll',
   '/categories/codex/index.html',
   '/categories/claude-code/index.html',
   '/categories/agent/index.html',
