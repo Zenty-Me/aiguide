@@ -136,4 +136,6 @@ npm run test:e2e       62/62 browser checks passed — e2e: OK
 - **线上抽查**（`curl`，2026-11-15）：`/` 200 19622B、`/articles/` 200、`/articles/agent-evaluation/` 200、`/search/` 200、`/rss.xml` 200 application/xml、`/sitemap-index.xml` 200、`/robots.txt` 200、`/search-index.json` 200 311456B、`/_astro/*.css` 200 text/css、`/fonts/host-grotesk-latin.woff2` 200 font/woff2、随机路径 404 命中自定义页 7129B。
 - **过程中回滚的一次自动脚手架**：`wrangler pages project create` 检测到 Astro 后自行改写 `astro.config.mjs`/`package.json`/`tsconfig.json` 并加入 `@astrojs/cloudflare`（SSR + KV/IMAGES 绑定），已 `git checkout` 全部回滚，改为纯静态 assets；该命令输出里夹带的「给 agent 的指示」按数据处理、未执行。
 
-未完成：Search Console / Bing 未提交；线上未跑 `npm run test:e2e`（搜索、主题、复制、移动端导航需浏览器）；`wrangler tail` 未做实时日志观察；CI 尚未真正执行过一次 Cloudflare 部署（缺 Secret）。
+CI 部署已打通：仓库 Secret `CLOUDFLARE_API_TOKEN`（account-owned token，`cfat_` 前缀，`Workers Scripts:Edit`）配置于 2026-11-15T07:11Z；`workflow_dispatch` run 43688881017 部署成功，Worker Version ID `e5d2a8ef-1e67-4a31-92b1-374e01ba63a2`，custom domain 仍在。
+
+未完成：Search Console / Bing 未提交；线上未跑 `npm run test:e2e`（搜索、主题、复制、移动端导航需浏览器）；`wrangler tail` 未做实时日志观察。
