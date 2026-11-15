@@ -51,8 +51,7 @@ src/
   scripts/               主题、导航、搜索、复制、目录、进度
   styles/global.css      设计变量与组件样式
 public/                 .nojekyll、favicon、OG 图、字体、示例文件
-worker.js               Worker 入口：HTTP 跳 HTTPS + 静态资源
-wrangler.jsonc          Cloudflare 部署配置（assets、routes、account）
+wrangler.jsonc          Cloudflare 部署配置（assets、routes）
 tests/                   smoke.mjs、e2e.mjs、静态服务器
 scripts/generate-og.mjs  OG 图生成
 ```
@@ -89,8 +88,8 @@ featured: false
 
 线上地址 <https://aiguide.zenty.top/> 由 Cloudflare Worker 提供静态资源，构建产物 `dist/` 不进仓库，本地或 CI 构建后上传：
 
-- `wrangler.jsonc`：`assets.directory` 指向 `dist`，`assets.binding` 为 `ASSETS`，`not_found_handling: "404-page"` 提供自定义 404；`routes` 以 `custom_domain: true` 绑定 `aiguide.zenty.top`。
-- `worker.js`：把 `http://` 301 到 `https://`，其余请求转交 `env.ASSETS`。zone 级的 Always Use HTTPS 需要 zone 编辑权限，所以放在代码里。
+- `wrangler.jsonc`：`assets.directory` 指向 `dist`，`not_found_handling: "404-page"` 提供自定义 404；`routes` 以 `custom_domain: true` 绑定 `aiguide.zenty.top`。没有 `main`、没有 asset binding，属于纯静态 assets Worker。
+- 站点不含任何服务端代码。`http://` → `https://` 由 zone 级 **Always Use HTTPS**（zone 设置 `always_use_https: on`，2026-11-15 开启）在网络层做 301，因此静态请求仍然是免费且不限量的，不消耗 Worker 调用额度。改这个设置需要 zone 编辑权限；关掉它 `http://` 就会重新返回 200。
 - 部署命令：`npm run deploy`（`npm run build && wrangler deploy`）；`npx wrangler tail` 可看实时日志。
 - CI：`.github/workflows/deploy.yml` 在推送到 `main` 时依次跑 `npm ci` → `npm run check` → `npm run build` → `npm run test:smoke`；仓库 Secrets 配了 `CLOUDFLARE_API_TOKEN`（权限 `Workers Scripts:Edit`）才会继续执行 `npx wrangler deploy`，没配就只做校验、跳过部署。浏览器测试（`npm run test:e2e`）需要本机浏览器，不进 CI。
 
@@ -104,7 +103,7 @@ featured: false
 2. 上传：`npx wrangler deploy`（等同 `npm run deploy`），更新 Worker `aiguide`。
 3. 自定义域名由 `wrangler.jsonc` 的 `routes` 声明，首次部署时 Cloudflare 自动在 `zenty.top` 下创建 `aiguide` 的 DNS 记录（橙云代理）并签发证书，不需要手工加 CNAME，也不要把这条记录改成「仅 DNS」。
 4. 改域名只需修改 `routes` 后重新 deploy，或在控制台 Workers → Custom Domains 里增删。
-5. 上线自查：`/`、`/articles/<id>/`、`/search/`、`/rss.xml`、`/sitemap-index.xml` 返回 200；`http://` 301 到 `https://`；随机路径返回自定义 404 页面。
+5. 上线自查：`/`、`/articles/<id>/`、`/search/`、`/rss.xml`、`/sitemap-index.xml` 返回 200；`http://` 301 到 `https://`（依赖 zone 级 Always Use HTTPS）；随机路径返回自定义 404 页面。
 6. 配置了 `routes` 后 `*.workers.dev` 默认关闭；需要预览地址时在 `wrangler.jsonc` 里显式加 `"workers_dev": true`。
 
 ## 验证记录
