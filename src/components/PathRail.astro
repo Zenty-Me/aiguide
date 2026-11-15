@@ -1,0 +1,23 @@
+---
+import RailStep from './RailStep.astro';
+import type { ResolvedPath } from '../lib/articles';
+
+interface Props {
+  path: ResolvedPath;
+  variant?: 'vertical' | 'inline' | 'compact';
+  currentId?: string;
+  showMeta?: boolean;
+}
+
+const { path, variant = 'vertical', currentId, showMeta = variant === 'vertical' } = Astro.props;
+---
+
+<div class={`rail rail--${variant}`} data-route={path.code}>
+  <ol class="rail-list">
+    {
+      path.steps.map((step, index) => (
+        <RailStep step={step} index={index} currentId={currentId} showMeta={showMeta} />
+      ))
+    }
+  </ol>
+</div>

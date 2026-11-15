@@ -1,0 +1,113 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getAllArticles, resolvePaths, readingMinutes } from '../../lib/articles';
+
+const articles = await getAllArticles();
+const paths = resolvePaths(articles);
+const totalSteps = paths.reduce((sum, path) => sum + path.steps.length, 0);
+const published = paths.reduce(
+  (sum, path) => sum + path.steps.filter((step) => step.href).length,
+  0,
+);
+
+const minutesOf = (id: string) => {
+  const article = articles.find((item) => item.id === id);
+  return article ? readingMinutes(article.body ?? '') : 0;
+};
+const pathMinutes = (path: (typeof paths)[number]) =>
+  path.steps.reduce((sum, step) => sum + minutesOf(step.id), 0);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: '学习路线',
+  description: '按主题编排的 AI 编程与 Agent 开发学习路线。',
+  inLanguage: 'zh-CN',
+  url: 'https://aiguide.zenty.top/paths/',
+  isPartOf: { '@type': 'WebSite', name: 'Zenty AI Guide', url: 'https://aiguide.zenty.top' },
+};
+---
+
+<BaseLayout
+  title="学习路线 — 按顺序掌握 AI 编程与 Agent 开发"
+  description="按主题编排的学习路线：从安装与第一次任务，到 Claude Code 工作流、MCP 接入、Skills、Agent 评估与自动化流水线。"
+  jsonLd={[jsonLd]}
+>
+  <div class="shell">
+    <Breadcrumbs items={[{ label: '首页', href: '/' }, { label: '学习路线' }]} />
+
+    <header class="page-header">
+      <h1 class="page-title">学习路线</h1>
+      <p class="page-lead">
+        每条路线解决一类问题，按推荐顺序阅读。先选适合的环境，再沿相关步骤推进；个别步骤是可选分支，跳过不影响主线。
+      </p>
+      <p class="meta mt-5">
+        {paths.length} 条路线 · {totalSteps} 个步骤 · 已发布 {published} 篇
+      </p>
+    </header>
+
+    <div class="route-list">
+      {
+        paths.map((path, index) => (
+          <section
+            id={path.code.toLowerCase().replace(/\s+/g, '-')}
+            class="route-section"
+            aria-labelledby={`route-title-${index + 1}`}
+          >
+            <div class="route-grid">
+              <div>
+                <p class="meta">路线 {String(index + 1).padStart(2, '0')}</p>
+                <h2 id={`route-title-${index + 1}`} class="route-heading">{path.title}</h2>
+                <p class="route-summary">{path.summary}</p>
+                <dl class="route-stats">
+                  <div>
+                    <dt>步骤</dt>
+                    <dd>{path.steps.length}</dd>
+                  </div>
+                  <div>
+                    <dt>预计阅读</dt>
+                    <dd>{pathMinutes(path)} 分钟</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div>
+                <ol class="route-steps">
+                  {
+                    path.steps.map((step, stepIndex) => (
+                      <li>
+                        <span class="route-step-num" aria-hidden="true">
+                          {String(stepIndex + 1).padStart(2, '0')}
+                        </span>
+                        {step.href ? (
+                          <a class="route-step-title" href={step.href}>{step.title}</a>
+                        ) : (
+                          <span class="route-step-title">{step.label}</span>
+                        )}
+                        <span class="route-step-desc">
+                          {step.href ? step.label : '教程整理中，先按描述预习这一步的目标。'}
+                        </span>
+                        <span class="route-step-meta">
+                          {step.category ? `${step.category} · ${step.difficulty}` : '待发布'}
+                        </span>
+                      </li>
+                    ))
+                  }
+                </ol>
+              </div>
+            </div>
+          </section>
+        ))
+      }
+    </div>
+
+    <div class="notice mt-4 mb-16">
+      <p><strong>路线会随教程更新调整。</strong></p>
+      <p>
+        新增或重排步骤时，<a class="text-link" href="/changelog/">更新日志</a>会记录原因。也可以先浏览
+        <a class="text-link" href="/categories/">主题分类</a>，再回到路线里定位顺序。
+      </p>
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,66 @@
+---
+const year = new Date().getFullYear();
+
+const columns = [
+  {
+    title: '浏览',
+    links: [
+      { href: '/articles/', label: '全部教程' },
+      { href: '/paths/', label: '学习路线' },
+      { href: '/categories/', label: '主题' },
+      { href: '/search/', label: '搜索' },
+    ],
+  },
+  {
+    title: '本站',
+    links: [
+      { href: '/about/', label: '关于' },
+      { href: '/changelog/', label: '更新日志' },
+      { href: '/rss.xml', label: 'RSS' },
+    ],
+  },
+];
+---
+
+<footer class="site-footer">
+  <div class="shell footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" class="brand" aria-label="Zenty AI Guide 首页">
+          <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="brand-name">Zenty</span>
+          <span class="brand-descriptor">AI 指南</span>
+        </a>
+        <p class="footer-note">
+          中文 AI 编程与 Agent 开发教程。按路线读，按主题查，从能跑通的第一步开始。
+        </p>
+        <a class="footer-rss" href="/rss.xml">
+          RSS 订阅
+          <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <div class="footer-cols">
+        {
+          columns.map((col) => (
+            <div class="footer-col">
+              <p class="footer-col-title">{col.title}</p>
+              <ul>
+                {col.links.map((link) => (
+                  <li>
+                    <a href={link.href}>{link.label}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="footer-legal">
+      <p>© {year} Zenty · AI 指南</p>
+      <p>内容以官方文档和实际验证为准。</p>
+    </div>
+  </div>
+</footer>

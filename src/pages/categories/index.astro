@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getAllArticles, categoryGroups } from '../../lib/articles';
+import { categoryHref } from '../../data/categories';
+
+const articles = await getAllArticles();
+const groups = categoryGroups(articles);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: '主题分类',
+  description: '按工具与问题划分的 AI 编程教程分类。',
+  inLanguage: 'zh-CN',
+  url: 'https://aiguide.zenty.top/categories/',
+  hasPart: groups.map((group) => ({
+    '@type': 'CollectionPage',
+    name: group.name,
+    url: `https://aiguide.zenty.top/categories/${group.slug}/`,
+  })),
+};
+---
+
+<BaseLayout
+  title="主题分类 — Codex、Claude Code、Agent、MCP、Skills、自动化"
+  description="按工具与问题浏览教程：Codex、Claude Code、Agent 开发、MCP、Skills 与自动化流水线。"
+  jsonLd={[jsonLd]}
+>
+  <div class="shell">
+    <Breadcrumbs items={[{ label: '首页', href: '/' }, { label: '主题分类' }]} />
+
+    <header class="page-header">
+      <h1 class="page-title">主题分类</h1>
+      <p class="page-lead">
+        六类主题覆盖从单次指令到流水线的完整链路。分类用于补课，路线负责顺序。
+      </p>
+    </header>
+
+    <ul class="category-grid">
+      {
+        groups.map((group) => (
+          <li>
+            <section class="category-entry" aria-labelledby={`category-${group.slug}`}>
+              <h2 id={`category-${group.slug}`}>
+                <a href={categoryHref(group.slug)}>{group.name}</a>
+              </h2>
+              <p>{group.description}</p>
+
+              {group.articles.length > 0 ? (
+                <ul>
+                  {group.articles.slice(0, 4).map((article) => (
+                    <li>
+                      <a href={`/articles/${article.id}/`}>{article.data.title}</a>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>该分类的教程正在整理中。</p>
+              )}
+
+              <a class="text-link category-more" href={categoryHref(group.slug)}>
+                查看 {group.name}（{group.articles.length}）
+                <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            </section>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</BaseLayout>

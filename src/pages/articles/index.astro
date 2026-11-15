@@ -1,0 +1,100 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ArticleRow from '../../components/ArticleRow.astro';
+import { getAllArticles, categoryGroups, byUpdatedDesc } from '../../lib/articles';
+import { categoryHref } from '../../data/categories';
+import { breadcrumbJsonLd, collectionJsonLd } from '../../lib/seo';
+
+const articles = await getAllArticles();
+const groups = categoryGroups(articles).filter((group) => group.articles.length > 0);
+const recent = byUpdatedDesc(articles).slice(0, 5);
+
+const crumbs = [
+  { label: '首页', href: '/' },
+  { label: '全部教程' },
+];
+
+const jsonLd = [
+  collectionJsonLd({
+    name: '全部教程',
+    description: 'Zenty AI Guide 已发布的全部 AI 编程与 Agent 开发教程。',
+    path: '/articles/',
+    parts: articles.map((a) => ({ name: a.data.title, path: `/articles/${a.id}/` })),
+  }),
+  breadcrumbJsonLd(crumbs),
+];
+---
+
+<BaseLayout
+  title="全部教程"
+  description="按主题与更新时间浏览 Zenty AI Guide 的全部教程：Codex、Claude Code、Agent、MCP、Skills 与自动化。"
+  jsonLd={jsonLd}
+>
+  <div class="shell">
+    <Breadcrumbs items={crumbs} />
+
+    <header class="page-header">
+      <h1 class="page-title">全部教程</h1>
+      <p class="page-lead">
+        {articles.length > 0
+          ? `共 ${articles.length} 篇。按主题分组，组内按编排顺序排列；文末有上一篇与下一篇。`
+          : '教程正在整理与校订中。可以先按学习路线浏览导航。'}
+      </p>
+    </header>
+
+    {
+      recent.length > 0 && (
+        <section class="section" aria-labelledby="recent-heading">
+          <div class="list-head">
+            <h2 id="recent-heading">最近更新</h2>
+            <a class="text-link" href="/rss.xml">
+              RSS
+              <span class="arrow" aria-hidden="true">↗</span>
+            </a>
+          </div>
+          <ul class="inline-links">
+            {recent.map((article) => (
+              <li>
+                <a href={`/articles/${article.id}/`}>{article.data.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      groups.length > 0 ? (
+        <div>
+          {groups.map((group) => (
+            <section class="section" aria-labelledby={`group-${group.slug}`}>
+              <div class="list-head">
+                <h2 id={`group-${group.slug}`}>
+                  <a href={categoryHref(group.slug)}>{group.name}</a>
+                </h2>
+                <a class="text-link" href={categoryHref(group.slug)}>
+                  分类说明
+                  <span class="arrow" aria-hidden="true">→</span>
+                </a>
+              </div>
+              <div class="list-frame">
+                {group.articles.map((article) => (
+                  <ArticleRow article={article} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div class="notice">
+          <p><strong>暂时没有已发布的教程。</strong></p>
+          <p>
+            先看看<a class="text-link" href="/paths/">学习路线</a>，或订阅
+            <a class="text-link" href="/rss.xml">RSS</a> 等待更新。
+          </p>
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>

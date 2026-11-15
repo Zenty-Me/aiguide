@@ -1,0 +1,52 @@
+---
+import PathRail from './PathRail.astro';
+import type { ResolvedPath } from '../lib/articles';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+  route?: { path: ResolvedPath; currentId: string };
+}
+
+const { headings, route } = Astro.props;
+const items = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+---
+
+{
+  items.length > 1 && (
+    <aside class="toc-wrap hidden lg:block">
+      <nav aria-label="本页目录" class="toc">
+        <p class="toc-title">本页目录</p>
+        <ol>
+          {items.map((heading) => (
+            <li class={`depth-${heading.depth}`}>
+              <a href={`#${heading.slug}`}>{heading.text}</a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
+      {route && (
+        <div class="toc-route">
+          <p class="toc-title">本篇属于</p>
+          <p class="toc-route-title">{route.path.title}</p>
+          <PathRail
+            path={route.path}
+            variant="compact"
+            currentId={route.currentId}
+            showMeta={false}
+          />
+          <a class="text-link toc-route-link" href="/paths/">
+            查看全部路线
+            <span class="arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+      )}
+    </aside>
+  )
+}

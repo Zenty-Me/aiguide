@@ -1,0 +1,43 @@
+---
+import type { ResolvedStep } from '../lib/articles';
+
+interface Props {
+  step: ResolvedStep;
+  index: number;
+  currentId?: string;
+  showMeta?: boolean;
+}
+
+const { step, index, currentId, showMeta = true } = Astro.props;
+const state = currentId === step.id ? 'current' : step.href ? undefined : 'pending';
+---
+
+<li class="rail-step" data-state={state}>
+  {
+    step.href ? (
+      <a
+        class="rail-link"
+        href={step.href}
+        aria-current={state === 'current' ? 'page' : undefined}
+      >
+        <span class="rail-node" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+        <span class="rail-body">
+          <span class="rail-label">{step.label}</span>
+          {showMeta && (
+            <span class="rail-meta">
+              {step.category ? `${step.category} · ${step.difficulty}` : '待发布'}
+            </span>
+          )}
+        </span>
+      </a>
+    ) : (
+      <div class="rail-link" aria-disabled="true">
+        <span class="rail-node" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+        <span class="rail-body">
+          <span class="rail-label">{step.label}</span>
+          {showMeta && <span class="rail-meta">待发布</span>}
+        </span>
+      </div>
+    )
+  }
+</li>

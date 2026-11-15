@@ -1,0 +1,93 @@
+---
+import ThemeToggle from './ThemeToggle.astro';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) =>
+  href === '/' ? path === '/' : path === href || path.startsWith(href);
+
+const links = [
+  { href: '/articles/', label: '教程' },
+  { href: '/paths/', label: '学习路线' },
+  { href: '/categories/', label: '主题' },
+];
+---
+
+<header class="site-header">
+  <div class="shell header-bar">
+    <a href="/" class="brand" aria-label="Zenty AI Guide 首页">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      <span class="brand-name">Zenty</span>
+      <span class="brand-descriptor">AI 指南</span>
+    </a>
+
+    <nav class="nav-centre" aria-label="主导航">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            class="nav-link"
+            aria-current={isCurrent(link.href) ? 'page' : undefined}
+          >
+            {link.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="header-actions">
+      <a
+        href="/search/"
+        class="search-link"
+        aria-label="搜索全部教程"
+        aria-current={path.startsWith('/search/') ? 'page' : undefined}
+      >
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" aria-hidden="true">
+          <circle cx="7.2" cy="7.2" r="5" stroke="currentColor" stroke-width="1.4" />
+          <path d="m11 11 3.2 3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+        </svg>
+        <span class="search-label">搜索</span>
+        <kbd aria-hidden="true">/</kbd>
+      </a>
+
+      <ThemeToggle />
+
+      <button
+        type="button"
+        class="icon-btn menu-btn"
+        data-nav-toggle
+        aria-expanded="false"
+        aria-controls="mobile-nav"
+        aria-label="打开导航菜单"
+      >
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M3 6h14M3 10h14M3 14h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="mobile-nav" data-nav-panel hidden class="mobile-nav">
+    <nav class="shell mobile-nav-inner" aria-label="移动导航">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            aria-current={isCurrent(link.href) ? 'page' : undefined}
+          >
+            {link.label}
+            <span aria-hidden="true">→</span>
+          </a>
+        ))
+      }
+      <a href="/search/" aria-current={path.startsWith('/search/') ? 'page' : undefined}>
+        搜索教程
+        <span aria-hidden="true">→</span>
+      </a>
+      <div class="mobile-nav-meta">
+        <a href="/about/">关于</a>
+        <a href="/changelog/">更新日志</a>
+        <a href="/rss.xml">RSS</a>
+      </div>
+    </nav>
+  </div>
+</header>

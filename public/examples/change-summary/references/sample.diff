@@ -1,0 +1,24 @@
+diff --git a/docs/usage.md b/docs/usage.md
+--- a/docs/usage.md
++++ b/docs/usage.md
+@@ -8,2 +8,3 @@ Run the command from the repository root.
+-Use the old flag.
++Use the new flag.
++The old flag still works for one release.
+diff --git a/src/summary.js b/src/summary.js
+--- a/src/summary.js
++++ b/src/summary.js
+@@ -1,3 +1,4 @@
+ export function summarize(lines) {
+-  return lines.join("\n");
++  return lines.join("\n").trim();
+ }
++// Keep the trailing newline out of release notes.
+diff --git a/tests/summary.test.js b/tests/summary.test.js
+--- a/tests/summary.test.js
++++ b/tests/summary.test.js
+@@ -1,2 +1,3 @@
+ test("joins lines", () => {
+   assert.equal(summarize(["a", "b"]), "a\nb");
+ });
++test("trims outer whitespace", () => assert.equal(summarize([" a "]), "a"));

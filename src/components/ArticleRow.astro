@@ -1,0 +1,26 @@
+---
+import { articleHref, formatDate, type Article } from '../lib/articles';
+import { categoryName } from '../data/categories';
+
+interface Props {
+  article: Article;
+}
+
+const { article } = Astro.props;
+const { title, description, category, difficulty, publishedAt } = article.data;
+---
+
+<div class="article-row">
+  <div class="article-row-meta">
+    <span class="cat">{categoryName(category)}</span>
+    <span aria-hidden="true">·</span>
+    <span>{difficulty}</span>
+  </div>
+  <div class="min-w-0">
+    <a class="article-row-title" href={articleHref(article.id)}>{title}</a>
+    <p class="article-row-description">{description}</p>
+  </div>
+  <time class="article-row-date" datetime={formatDate(publishedAt)}>
+    {formatDate(publishedAt)}
+  </time>
+</div>
