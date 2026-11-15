@@ -13,3 +13,7 @@ dist/
 
 # Windows artifact
 nul
+
+# wrangler local state
+.wrangler/
+.wl-*
