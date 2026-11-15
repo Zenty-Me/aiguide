@@ -14,7 +14,7 @@
     "test:smoke": "node tests/smoke.mjs",
     "test:e2e": "node tests/e2e.mjs",
     "test": "npm run test:smoke && npm run test:e2e",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && npx --yes wrangler@4.162.0 deploy"
   },
   "dependencies": {
     "@astrojs/rss": "4.0.19",
@@ -27,7 +27,6 @@
     "playwright-core": "1.65.1",
     "sharp": "0.35.5",
     "tailwindcss": "4.3.5",
-    "typescript": "5.9.3",
-    "wrangler": "4.162.0"
+    "typescript": "5.9.3"
   }
 }

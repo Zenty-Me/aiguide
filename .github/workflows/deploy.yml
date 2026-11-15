@@ -31,4 +31,4 @@ jobs:
       - run: npm run test:smoke
       - name: Deploy to Cloudflare Workers
         if: github.ref == 'refs/heads/main' && env.CLOUDFLARE_API_TOKEN != ''
-        run: npx wrangler deploy
+        run: npx --yes wrangler@4.162.0 deploy
