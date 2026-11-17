@@ -98,6 +98,22 @@ const schema = [...jsonLd];
         <script type="application/ld+json" set:html={JSON.stringify(item)} />
       ))
     }
+
+    <script is:inline>
+      // Dedicated Cloudflare Web Analytics entry; the zone's automatic injection must exclude
+      // this hostname. See README. Hostname guard keeps dev, previews and local E2E out.
+      (function () {
+        if (window.location.hostname !== 'aiguide.zenty.top') return;
+        var beacon = document.createElement('script');
+        beacon.type = 'module';
+        beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+        beacon.setAttribute(
+          'data-cf-beacon',
+          '{"token":"601363aa5af74968bb98dcf2281b4dfb"}',
+        );
+        document.head.appendChild(beacon);
+      })();
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#main">跳到正文</a>

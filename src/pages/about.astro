@@ -24,7 +24,7 @@ const jsonLd = [
 
 <BaseLayout
   title="关于"
-  description="Zenty AI Guide 的定位、内容原则与技术说明：面向中文开发者的 AI 编程与 Agent 开发实践指南，静态站点、无后端、无追踪。"
+  description="Zenty AI Guide 的定位、内容原则与技术说明：面向中文开发者的 AI 编程与 Agent 开发实践指南，静态站点、无后端，仅使用不含 Cookie 的聚合访问统计。"
   jsonLd={jsonLd}
 >
   <div class="shell">
@@ -72,8 +72,16 @@ const jsonLd = [
 
         <h2>技术说明</h2>
         <p>
-          本站由 Astro 静态生成，部署在 GitHub Pages，使用自有域名。没有后端、没有数据库、没有评论系统，
-          也不加载第三方统计脚本。站内搜索在构建时生成全文索引，在浏览器本地完成匹配，关键词不会离开你的设备。
+          本站由 Astro 静态生成，作为 Cloudflare Workers 静态资源部署，使用自有域名。
+          没有后端、没有数据库、没有评论系统，也不加载广告或跨站追踪脚本。
+        </p>
+        <p>
+          访问统计使用 Cloudflare Web Analytics：只汇总访问量与页面性能（Core Web Vitals）这类聚合数据，
+          不使用 Cookie，不在浏览器里写标识，也不做跨站追踪或用户画像。
+        </p>
+        <p>
+          搜索匹配在浏览器本地完成；刷新或分享带 <code>q</code> 参数的搜索地址时，关键词会随页面请求发送到托管服务。
+          Cloudflare Web Analytics 不记录查询字符串。
         </p>
 
         <h2 id="author">维护者</h2>

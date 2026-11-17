@@ -1,6 +1,6 @@
 # Zenty AI Guide — 实现与验证记录
 
-> **状态说明（2026-11-15 补）**：本文是时间记录，§1–§10 反映的是 2026-11-14 的 GitHub Pages 阶段结论。站点的实际部署形态已改为 Cloudflare Workers 静态资源，**当前状态以 §11 为准**；上文提到的 `public/CNAME`、`.nojekyll`、Pages 工作流与 Pages 设置项均已移除。
+> **状态说明（2026-11-15 补，2026-11-17 再补）**：本文是时间记录，§1–§10 反映的是 2026-11-14 的 GitHub Pages 阶段结论。站点的实际部署形态已改为 Cloudflare Workers 静态资源，**当前状态以 §11（部署）与 §12（统计条目）为准**；上文提到的 `public/CNAME`、`.nojekyll`、Pages 工作流与 Pages 设置项均已移除。
 
 记录人：Pi 开发 worker（task_c3fdaff06006）
 时间：2026-11-14，最后一次完整验证 15:20（本地时间；内容冻结后修复搜索索引断言并全量重跑 check + build + smoke + e2e）
@@ -141,3 +141,29 @@ npm run test:e2e       62/62 browser checks passed — e2e: OK
 CI 部署已打通：仓库 Secret `CLOUDFLARE_API_TOKEN`（account-owned token，`cfat_` 前缀，`Workers Scripts:Edit`）配置于 2026-11-15T07:11Z；`workflow_dispatch` run 43688881017 部署成功，Worker Version ID `e5d2a8ef-1e67-4a31-92b1-374e01ba63a2`，custom domain 仍在。
 
 未完成：Search Console / Bing 未提交；线上未跑 `npm run test:e2e`（搜索、主题、复制、移动端导航需浏览器）；`wrangler tail` 未做实时日志观察。
+
+## 12. 2026-11-17 独立 Web Analytics 条目收口
+
+站点改用**手工创建的独立 Web Analytics 条目**统计，并由 zone 级 Configuration Rule 只对本站主机名关掉自动注入；此前尝试通过 Web Analytics API 新增 rule 的路径失败，不是线上做法。
+
+- **统计条目**：手工创建，`site_tag` `0bb01cb04fe342c3a5176ea210a9050c`，公开 token `601363aa5af74968bb98dcf2281b4dfb`（公开标识，随 HTML 下发，不能读取数据）。页面侧只有 `src/layouts/BaseLayout.astro` 一段 `is:inline` 脚本，在 `location.hostname === 'aiguide.zenty.top'` 成立时追加 `beacon.min.js`。
+- **失败路径（未部署）**：通过 Web Analytics API 新增 rule 返回 HTTP 409 `maxRulesError`（规则数超上限），该方案放弃，线上不存在这条规则。
+- **实际部署**：`zenty.top` → Rules → Configuration Rules 下一条配置规则，仅让 `aiguide.zenty.top` 退出 zone 自动注入：
+
+  | 项 | 值 |
+  | --- | --- |
+  | ref | `aiguide_dedicated_web_analytics` |
+  | phase / ruleset | `http_config_settings` / `44e83d582ac94c0abdebd43d40236e7c` |
+  | rule id | `5ac2a7f52b2342cd9665e394a789a5b8` |
+  | 表达式 | `http.host eq "aiguide.zenty.top"`（exact） |
+  | 动作 | `set_config`，`disable_rum: true` |
+
+  作用范围只有该主机名：自动注入关掉后页面用独立条目的 beacon 上报到 `cloudflareinsights.com`。zone 里原有的 RUM 通配规则未改动，其它主机名（例：`mail.zenty.top`）仍带原来的 zone token。
+- **回滚**：必须成对操作——删除上面这条 `disable_rum` 配置规则，同时移除 `BaseLayout.astro` 里的手动 beacon 并重新部署。只做一半会漏统计或双重计数；**不要**关闭 `zenty.top` 的整站 RUM。
+- **验证结果**：`npm run check` 0 error / 0 warning（仅 2 条既有 hint）；`npm run build` 50 页；`npm run test:smoke` 5811/5811；`npm run test:e2e` 82/82；浏览器 hostname 守卫在正式域名下只有 1 个 `beacon.min.js` 实例，`localhost` 与 `*.workers.dev` 下为 0。生产部署 Worker Version `b976594c-408d-4ef3-8b0c-08a55dea0fd9`。
+- **线上抽查**：首页 HTTP 200，HTML 中不含旧 zone token、含新条目公开 token；`mail.zenty.top` 仍输出原 zone token，说明去掉的是本主机名的注入而非整站。
+- **历史数据**：按 Web Analytics 查询，2026-11-16 00:00 UTC 至 2026-11-17 07:30 UTC 之间旧条目记录到 24 次 `aiguide` 页面加载；这部分不会迁移到新条目，两边不可相加。
+- **真实浏览器验证（已确认）**：用真实 Chrome 访问首页 `/`、文章 `/articles/codex-install-login/`、搜索 `/search/?q=Codex`，三次均返回 HTTP 200，且每个页面只有 1 个 beacon 实例、使用 token `601363aa5af74968bb98dcf2281b4dfb`；三次实际发往 `https://cloudflareinsights.com/cdn-cgi/rum` 的 POST 均返回 204，payload 的 `eventType` 为 1，搜索页 URL 已剥离查询串。
+- **数据侧确认（已确认）**：随后用 Cloudflare GraphQL 的 `rumPageloadEventsAdaptiveGroups` 查询 `requestHost: aiguide.zenty.top`、`siteTag: 0bb01cb04fe342c3a5176ea210a9050c`，时间窗 `2026-11-17T07:49:00Z` 至 `2026-11-17T08:10:00Z`，返回 `count: 3`，与新条目收到上报一致；这 3 次即上述验证访问，不构成自然流量结论。
+- **独立评审**：Codex（GPT-6 Astra，思考强度 high）第 2 轮复核未再提出实质问题。
+- UI 与 README 的搜索/隐私评审修复已在同一轮完成，无遗留改动。

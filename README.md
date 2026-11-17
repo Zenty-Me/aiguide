@@ -1,6 +1,6 @@
 # Zenty AI Guide
 
-面向中文开发者的 AI 编程与 Agent 开发实战指南：Codex、Claude Code、MCP、Skills 与自动化流水线。所有教程以「一次真实任务 → 可验证结果」为组织方式，站点为纯静态输出，搜索在浏览器内完成，不收集访客数据。
+面向中文开发者的 AI 编程与 Agent 开发实战指南：Codex、Claude Code、MCP、Skills 与自动化流水线。所有教程以「一次真实任务 → 可验证结果」为组织方式，站点为纯静态输出，搜索在浏览器内完成；访问统计只用 Cloudflare Web Analytics 的聚合数据，不使用 Cookie，也不做用户画像。
 
 线上地址：<https://aiguide.zenty.top/>（Cloudflare Workers 静态资源 + 自定义域名）
 
@@ -42,7 +42,7 @@ npm run preview      # 预览构建结果
 src/
   pages/                 路由（首页、主题、学习路线、教程、搜索、关于、更新日志、404）
   components/            页头、页脚、文章行、路线图、目录、阅读进度等
-  layouts/               页面骨架（meta、OG、JSON-LD、主题首屏初始化）
+  layouts/               页面骨架（meta、OG、JSON-LD、主题首屏初始化、Web Analytics 上报）
   content/articles/      教程正文（Markdown）
   data/paths.ts          六条学习路线的编排
   data/categories.ts     主题定义
@@ -105,6 +105,29 @@ featured: false
 4. 改域名只需修改 `routes` 后重新 deploy，或在控制台 Workers → Custom Domains 里增删。
 5. 上线自查：`/`、`/articles/<id>/`、`/search/`、`/rss.xml`、`/sitemap-index.xml` 返回 200；`http://` 301 到 `https://`（依赖 zone 级 Always Use HTTPS）；随机路径返回自定义 404 页面。
 6. 配置了 `routes` 后 `*.workers.dev` 默认关闭；需要预览地址时在 `wrangler.jsonc` 里显式加 `"workers_dev": true`。
+
+## 访问统计（Cloudflare Web Analytics）
+
+统计使用一个**手工创建的独立 Web Analytics 条目**（不是 zone 自动注入那条），代码只落在 `src/layouts/BaseLayout.astro`：
+
+- **加载方式。** 共享布局里一段 `is:inline` 脚本在运行时判断 `location.hostname === 'aiguide.zenty.top'`，成立才向 `<head>` 追加 `https://static.cloudflareinsights.com/beacon.min.js`，并用官方 `data-cf-beacon='{"token":"601363aa5af74968bb98dcf2281b4dfb"}'` 指定归属。`npm run dev`、`*.workers.dev` 预览和本地构建的 E2E 测试（localhost）都命中不了这个判断，不会上报；判断只在浏览器里做，构建期没有分支，也没有新增依赖或服务端代码。
+- **条目标识与公开 token。** 控制台里区分条目用的是 `site_tag`（`0bb01cb04fe342c3a5176ea210a9050c`），不写进页面；上面的公开 token（`601363aa5af74968bb98dcf2281b4dfb`）会出现在每个访客拿到的 HTML 里，不是密钥，只能用于归属上报，不能读取统计数据。真正的凭据是 `CLOUDFLARE_API_TOKEN`，只放在 CI Secrets 里，不进仓库。
+- **zone 侧只对本域名关闭自动注入。** `zenty.top` 的 zone 仍开着 Web Analytics 自动注入（注入 beacon 的 token 是 `e55d7aadd2c145feb23c9a9e6369418c`，其它主机名照旧由它上报）；一个页面只应加载一个 beacon 实例，重复加载会重复计数。实际生效的做法是在 `zenty.top` → Rules → Configuration Rules 下加一条配置规则，只匹配本站主机名：
+
+  | 项 | 值 |
+  | --- | --- |
+  | ref | `aiguide_dedicated_web_analytics` |
+  | phase / ruleset | `http_config_settings` / `44e83d582ac94c0abdebd43d40236e7c` |
+  | rule id | `5ac2a7f52b2342cd9665e394a789a5b8` |
+  | 表达式 | `http.host eq "aiguide.zenty.top"`（exact） |
+  | 动作 | `set_config`，`disable_rum: true` |
+
+  它只对 `aiguide.zenty.top` 关掉 zone 级自动注入，页面自己加载独立条目的 beacon 上报到 `cloudflareinsights.com`；zone 里原有的 RUM 通配规则没有改动。**注意**：在 Web Analytics 里「再加一条规则」的路径试过但失败（HTTP 409 `maxRulesError`），部署的不是那条路径；配置规则与统计条目都在 Cloudflare 控制台维护，不在仓库里。
+- **回滚要成对操作。** 要回到纯自动注入，必须同时做两件事：删掉上面这条 `disable_rum` 配置规则，并从 `BaseLayout.astro` 移除手动 beacon 后重新部署。只做一半会漏统计或双重计数。**不要**关掉 `zenty.top` 的整站 RUM——那会让其它主机名一起失去统计。
+- **历史数据留在旧条目。** 换成独立条目之前的访问量仍在原来 `zenty.top` 的条目里；新条目只统计切换之后的流量，两边曲线不能相加或直接对比。
+- **Workers 指标不是访客统计。** 这个 Worker 只托管静态资源、不执行 Worker 代码，所以 Workers 的调用次数与日志并不对应网站访客；访客数、页面浏览量与页面性能以 Web Analytics 条目为准，不要把 Workers 指标当成访问统计。
+- **查询字符串。** 搜索匹配在浏览器本地完成；刷新或分享带 `?q=` 的搜索地址时，关键词会随页面请求发送到托管服务。Cloudflare 文档说明 Web Analytics 不记录查询字符串。
+- **隐私边界。** beacon 收集聚合的访问量与页面性能数据（同时带上页面 URL 与 referrer），不写 Cookie、localStorage 或 IndexedDB，不做跨站追踪、用户画像或 IP 指纹。改完加载逻辑后在正式域名打开一次页面，确认 Network 里 `beacon.min.js` 只有一个实例；beacon 正常会把加载（load）与性能（performance）分成两条请求上报，出现两条属于预期。
 
 ## 验证记录
 
