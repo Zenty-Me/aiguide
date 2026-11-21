@@ -8,6 +8,13 @@ difficulty: 进阶
 order: 150
 tags: ["Claude Code", "MCP", "stdio", "工具集成", "配置"]
 featured: false
+faq:
+  - q: "接入 MCP 前要先确认什么？"
+    a: "先确认服务器本身可运行：build/index.js 存在、node 在 PATH 中、且能返回工具列表。stdio 服务器启动后等待 JSON-RPC 输入是正常现象，不要以为它卡住，调试日志应写 stderr 而不是 stdout。"
+  - q: "/mcp 显示 0 个工具是什么原因？"
+    a: "说明连接已经建立，但服务器没有暴露工具。通常是没实现 tools/list，或工具注册失败。应回到服务器的最小实现逐项对照，而不是另装一个第三方服务器绕过。"
+  - q: "MCP 三种作用域该怎么选？"
+    a: "个人试验用 local，配置留在用户目录；团队共享用 project，写入 .mcp.json 但需要交互式批准；长期自用工具用 user，对所有项目生效。同名服务器的优先级从高到低是 local、project、user。"
 ---
 
 ## 目标：让一个已知可用的本地服务器出现在会话里

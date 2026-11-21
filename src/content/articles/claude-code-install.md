@@ -9,6 +9,13 @@ order: 110
 tags: ["Claude Code", "安装", "登录", "CLI", "环境配置"]
 featured: false
 setupNote: true
+faq:
+  - q: "安装 Claude Code 有什么系统要求？"
+    a: "官方最低要求是 macOS 13 以上、Windows 10 1809 以上、Ubuntu 20.04 或 Debian 10 以上，内存 4 GB 起，x64 或 ARM64，并且能访问安装地址与登录服务，并有一个可用终端。"
+  - q: "装完仍提示找不到 claude 怎么办？"
+    a: "先新开一个终端让 PATH 生效，再用 command -v claude 或 PowerShell 的 Get-Command 查真实路径。路径不在 PATH 时按安装器输出找到目录再修正，不要凭记忆添加一个不存在的路径；claude doctor 能补充安装方式。"
+  - q: "Windows 上该用原生还是 WSL？"
+    a: "要沙箱能力就用 WSL2，并在其中重跑 Linux 安装命令；原生 Windows 安装可用，但官方标注不支持沙箱。WSL1 只在 WSL2 不可用时作为退路，同样没有沙箱。"
 ---
 
 ## 目标：装得上、找得到、登得进

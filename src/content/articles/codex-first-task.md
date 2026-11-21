@@ -9,6 +9,13 @@ order: 40
 tags: ["Codex", "CLI", "工作流", "代码审阅"]
 featured: true
 setupNote: true
+faq:
+  - q: "第一次任务该选多大的范围？"
+    a: "选 diff 一屏能看完的小任务，比如在空仓库里补一个 slugify 函数和四条测试。范围一大就失去验收能力，先从小任务建立判断力。"
+  - q: "git diff 为什么看不到新增测试文件？"
+    a: "因为 git diff 只比较已跟踪文件，新增文件处于未跟踪状态。先执行 git add -N 登记路径再看 diff，或者暂存后用 git diff --cached 查看。"
+  - q: "node --test 显示 tests 0 算通过吗？"
+    a: "不算。文件名不符合默认匹配模式时，运行器一个都没找到，照样打印全零并返回退出码 0。验收先确认 tests 4、pass 4，再谈其他。"
 ---
 
 ## 目标：跑通“指令 → 改动 → 验收”的闭环

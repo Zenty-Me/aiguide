@@ -8,6 +8,13 @@ difficulty: "入门"
 order: 310
 tags: ["Agent Skills", "SKILL.md", "Claude Code"]
 featured: false
+faq:
+  - q: "第一个 Skill 该放在哪个目录？"
+    a: "项目级放仓库根的 .claude/skills/名字/SKILL.md，个人级放主目录中的 .claude/skills；项目级能提交到仓库共享，换客户端要按对方文档放置。"
+  - q: "斜杠命令提示不存在怎么办？"
+    a: "先查项目根目录、Skill 的放置层级、目录名与 name 是否完全一致；放在个人级却按项目级命令查找，同样会提示不存在。"
+  - q: "做这个 Skill 必须先装 Node 吗？"
+    a: "最小版本不依赖 Node，只用 Git 和一个支持 Agent Skills 的客户端。带脚本的后续版本才需要 Node 20 以上，脚本只读文件，不执行 Git 写操作。"
 ---
 
 Agent Skill 不是一段“更长的提示词”，而是一个带元数据的目录：客户端先读名称和描述判断是否相关，命中后才加载正文。第一个 Skill 最容易犯的错，是一上来写几千字规范，却没有让客户端知道“什么时候该用它”。本文用 `change-summary` 做一个最小可用版本，只依赖 Git，不引入脚本；资源拆分留到下一篇。

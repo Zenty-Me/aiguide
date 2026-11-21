@@ -17,3 +17,6 @@ nul
 # wrangler local state
 .wrangler/
 .wl-*
+
+# 本地临时产物（FAQ 生成中间件等）
+.tmp/

@@ -8,6 +8,13 @@ difficulty: 入门
 order: 230
 tags: ["MCP", "Node.js", "stdio", "SDK"]
 featured: false
+faq:
+  - q: "写第一个 MCP server 要什么准备？"
+    a: "Node.js 20 或更高、基本的 TypeScript 经验，并已安装 Claude Code 或 Codex 之一。第一个工具选输入输出确定、无副作用的纯函数，出问题时才能分清是协议没通还是逻辑写错。"
+  - q: "sdk 包和 server 包能混用吗？"
+    a: "别混用。当前官方文档用 server 包配合 serveStdio，字段和入口都与旧教程的 sdk 包加 StdioServerTransport 不同，照抄会得到启动报错，或者连上了却看不到工具。"
+  - q: "工具出现在列表里就算成功了吗？"
+    a: "只是注册成功。要真正触发一次调用并核对返回值，才算调用链通了；注册客户端时路径必须写绝对路径，改完 TypeScript 还要重新构建，否则跑的还是旧文件。"
 ---
 
 ## 目标：从“配置别人的 server”到“自己能写一个”

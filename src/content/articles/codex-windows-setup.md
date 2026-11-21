@@ -9,6 +9,13 @@ order: 20
 tags: ["Codex", "Windows", "PowerShell", "WSL", "环境配置"]
 featured: false
 setupNote: true
+faq:
+  - q: "跑 Codex 一定要装 WSL 吗？"
+    a: "不必。Codex 可以在原生 Windows 上运行，只有在依赖 Linux 工具链，或明确需要 WSL2 里的 Linux 沙箱时才选 WSL。选了 WSL 就要从 WSL 终端启动，并单独完成登录。"
+  - q: "PowerShell 里能用 grep 吗？"
+    a: "用不了，这不是 Codex 缺少能力，而是当前 shell 没有这些 Unix 工具。改用等价命令，例如用 Select-String 搜索、用 Get-Content 读取文件；或者先切换到 WSL，再执行 Linux 命令。"
+  - q: "脚本进 WSL 后报换行符错误怎么修？"
+    a: "原因是文件进入 Linux 环境前没有被规范化。先用 git ls-files --eol 找出 CRLF 的脚本，再在 .gitattributes 里按类型声明换行规则并重新检出；别整仓库盲目转换，二进制文件不要套用文本规则。"
 ---
 
 ## 目标：在正确的 shell 里，对正确的目录说话

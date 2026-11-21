@@ -7,6 +7,8 @@ import { CATEGORY_SLUGS } from './data/categories';
  * Content contract shared with the content author:
  * src/content/articles/<id>.md, frontmatter below, URLs /articles/<id>/.
  */
+const faqSchema = z.array(z.object({ q: z.string().min(1), a: z.string().min(1) }));
+
 const articles = defineCollection({
   loader: glob({ pattern: '*.md', base: './src/content/articles' }),
   schema: z.object({
@@ -24,6 +26,8 @@ const articles = defineCollection({
      * whose steps genuinely assume a working account or paid credential.
      */
     setupNote: z.boolean().default(false),
+    /** 结构化问答：渲染成文末「常见问题」，并输出 FAQPage 数据。 */
+    faq: faqSchema.default([]),
   }),
 });
 

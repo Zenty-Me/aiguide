@@ -8,6 +8,13 @@ difficulty: 进阶
 order: 180
 tags: ["Claude Code", "故障排查", "诊断", "MCP", "权限"]
 featured: false
+faq:
+  - q: "遇到故障第一步应该先做什么"
+    a: "先做只读分诊：看安装用 claude doctor，看认证用 claude auth status，看记忆用 /context all，看规则用 /permissions，看 MCP 用 claude mcp list；这些检查都不改变状态，拿到证据后再做单变量的最小修复。"
+  - q: "MCP 连不上时先检查哪几项"
+    a: "用 claude mcp list 和 claude mcp get 看作用域、命令与连接状态；确认命令是绝对路径、node 在 PATH 里，并且服务器日志没有写进 stdout，因为 stdio 的 stdout 是 JSON-RPC 通道。"
+  - q: "WSL 里会话很慢需要迁移仓库吗"
+    a: "先验证再决定。仓库在 /mnt/c 下时文件访问通常慢于 WSL 自己的文件系统，把它复制到 WSL 主目录后重跑同一命令，确认确实变快再迁移，不要直接删除原目录。"
 ---
 
 ## 目标：用证据缩小问题，而不是重装一切

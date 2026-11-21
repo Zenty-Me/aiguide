@@ -9,6 +9,13 @@ order: 10
 tags: ["Codex", "CLI", "安装", "登录", "认证"]
 featured: false
 setupNote: true
+faq:
+  - q: "安装后仍提示 command not found 怎么办？"
+    a: "先新开一个终端让 PATH 生效，再用 command -v codex 看实际路径。npm 路线可查全局 bin 目录是否在 PATH 里，并清掉其他来源的同名安装。"
+  - q: "ChatGPT 登录和 API Key 计费一样吗？"
+    a: "不一样。ChatGPT 账号登录走订阅内的 Codex 额度，API Key 按标准 API 费率单独结算，是两套账单。两者同时存在时，要确认本次会话实际用哪一种。"
+  - q: "没有图形界面的服务器怎么登录？"
+    a: "用 codex login --device-auth 走设备码流程，它在官方文档里仍标注为 beta。企业网络拦截回调时，这通常比反复复制浏览器回调地址更稳。"
 ---
 
 ## 目标：先证明“能读”，再证明“能改”

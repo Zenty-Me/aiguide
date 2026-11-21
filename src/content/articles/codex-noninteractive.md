@@ -9,6 +9,13 @@ order: 70
 tags: ["Codex", "自动化", "CLI", "JSON", "CI"]
 featured: false
 setupNote: true
+faq:
+  - q: "codex exec 的最终结果在哪条输出流？"
+    a: "默认模式写 stdout，进度和诊断写 stderr；加 --json 后 stdout 变成事件流，最终消息要从事件里提取，或用 -o 单独保存。两条流不要合并。"
+  - q: "加了 --output-schema 还要自己校验吗？"
+    a: "要。它是对模型的一次请求，不是运行时保证。把结果交给独立校验器检查必需字段、类型和枚举，校验失败就以校验器的输出为准。"
+  - q: "旧脚本里的 --full-auto 还能用吗？"
+    a: "不行。这个参数已不再受支持，旧脚本会直接失败。改用明确的 --sandbox workspace-write 等选项，并按 codex exec --help 的实际输出核对。"
 ---
 
 ## 目标：让脚本拿到可判断的结果

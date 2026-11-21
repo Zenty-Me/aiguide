@@ -8,6 +8,13 @@ difficulty: "进阶"
 order: 350
 tags: ["Agent Skills", "团队协作", "版本控制"]
 featured: false
+faq:
+  - q: "团队 Skill 按什么版本分发？"
+    a: "按完整 commit SHA 固定版本。version 号只对人友好，tag 还能被移动；交接时同时记录 SHA、路径和负责人，不要把最新 main 当成固定版本。"
+  - q: "新版本出问题该怎么回滚？"
+    a: "首选 git revert 那个提交，保留历史，也不影响同仓库其他 Skill；恢复旧文件用 git restore 对齐目录，别用强重置，也别删掉整个 skills 目录。"
+  - q: "兼容矩阵至少记录哪些内容？"
+    a: "记录客户端与版本、Skill revision、路径、直接调用和自动触发结果、脚本自测。只写实际验证过的能力，版本号要填真实测过的，写最新不可复现。"
 ---
 
 个人 Skill 可以靠记忆维护，团队 Skill 不行。队友需要知道用的是哪个版本、在哪些客户端验证过、出了问题怎么退回，而不是在聊天里传一个压缩包。本文用一个虚构但完整的 `release-check` 场景，说明如何把 Skill 放进 Git、审查改动、固定 revision、维护兼容矩阵，并在不破坏其他 Skill 的前提下回滚。格式和触发质量的检查交给 [Skill 验证](/articles/skills-validation/)，这里只谈分发和运维。

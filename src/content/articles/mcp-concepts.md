@@ -8,6 +8,13 @@ difficulty: "入门"
 order: 210
 tags: ["MCP", "架构", "协议"]
 featured: false
+faq:
+  - q: "Host 和 Server 有什么区别？"
+    a: "Host 是你直接使用的 AI 应用，管界面、会话、权限和模型调用；它为每个 server 创建一个 client，client 负责协议消息、请求编号、超时与传输；server 只暴露工具、资源和提示词。"
+  - q: "模型会直接连接 MCP server 吗？"
+    a: "不会。模型只产生一次工具选择，由 host 判断是否允许执行，client 才把调用请求发给 server。所以工具没出现时，先查 host 侧的连接配置，而不是反复重启 server。"
+  - q: "tools/list 为空先查什么？"
+    a: "先查 server 侧的工具注册代码：注册顺序、条件分支和能力声明都可能让注册被跳过。若进程直接退出，则回到启动命令、工作目录、环境变量和依赖去查。"
 ---
 
 很多 MCP 教程从一行配置开始，照着粘贴能跑，但一旦工具没出现或调用超时，就不知道应该查进程、查协议还是查业务代码。原因通常不是某个 SDK 方法记错了，而是把 host、client、server 三个角色混成了一个“服务”。先把这张地图画清楚，后面的 first-server、工具设计和 Inspector 排错才有落点。

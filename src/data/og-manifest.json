@@ -40,6 +40,9 @@
   "guides": [
     "account-types",
     "claude-pro-limits",
-    "gpt-plus-vs-api"
+    "cost-paths",
+    "gpt-plus-vs-api",
+    "monthly-vs-yearly",
+    "pick-a-seller"
   ]
 }
