@@ -8,6 +8,7 @@ difficulty: 进阶
 order: 70
 tags: ["Codex", "自动化", "CLI", "JSON", "CI"]
 featured: false
+setupNote: true
 ---
 
 ## 目标：让脚本拿到可判断的结果

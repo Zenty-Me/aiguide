@@ -19,7 +19,29 @@ const articles = defineCollection({
     order: z.number().int(),
     tags: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
+    /**
+     * Render the "账号与额度" note after the body. Turn it on only for articles
+     * whose steps genuinely assume a working account or paid credential.
+     */
+    setupNote: z.boolean().default(false),
   }),
 });
 
-export const collections = { articles };
+/**
+ * Guides under /start/: the prerequisite layer the tutorials assume.
+ * src/content/guides/<slug>.md, URLs /start/<slug>/.
+ */
+const guides = defineCollection({
+  loader: glob({ pattern: '*.md', base: './src/content/guides' }),
+  schema: z.object({
+    title: z.string().min(1),
+    description: z.string().min(1),
+    /** Short label shown above the title, e.g. 账务边界. */
+    kicker: z.string().min(1),
+    order: z.number().int(),
+    updatedAt: z.coerce.date(),
+    faq: z.array(z.object({ q: z.string().min(1), a: z.string().min(1) })).default([]),
+  }),
+});
+
+export const collections = { articles, guides };

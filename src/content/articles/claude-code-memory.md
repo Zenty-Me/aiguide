@@ -8,6 +8,7 @@ difficulty: 进阶
 order: 120
 tags: ["Claude Code", "CLAUDE.md", "上下文", "规则", "项目配置"]
 featured: false
+setupNote: true
 ---
 
 ## 目标：把重复交代变成可维护的项目文件

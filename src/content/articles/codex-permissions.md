@@ -8,6 +8,7 @@ difficulty: 进阶
 order: 30
 tags: ["Codex", "权限", "沙箱", "审批", "安全"]
 featured: false
+setupNote: true
 ---
 
 ## 目标：先分清“能不能做”和“要不要问”

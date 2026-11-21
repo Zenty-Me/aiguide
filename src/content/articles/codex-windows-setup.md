@@ -8,6 +8,7 @@ difficulty: 入门
 order: 20
 tags: ["Codex", "Windows", "PowerShell", "WSL", "环境配置"]
 featured: false
+setupNote: true
 ---
 
 ## 目标：在正确的 shell 里，对正确的目录说话

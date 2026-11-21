@@ -32,7 +32,7 @@ npm run preview      # 预览构建结果
 | `npm run test:smoke` | 构建产物冒烟测试：路由、链接与锚点、元信息、JSON-LD、搜索数据、RSS、sitemap |
 | `npm run test:e2e` | 浏览器测试：搜索、主题持久化、复制代码、移动端导航、溢出与报错 |
 | `npm test` | 依次运行 smoke 与 e2e |
-| `npm run og` | 重新生成 `public/og-default.png`（需要 sharp） |
+| `npm run og` | 重新生成全站社交预览图：`public/og-default.png` 与 `public/og/{articles,guides}/*.png`（需要 sharp，且本机要有中文字体） |
 
 浏览器测试使用本机已安装的 Chrome 或 Edge（可用 `CHROME_PATH` 指定）。在 WSL 中运行时会自动转交 Windows 侧浏览器执行，脚本自行启动静态服务器。
 
@@ -44,13 +44,15 @@ src/
   components/            页头、页脚、文章行、路线图、目录、阅读进度等
   layouts/               页面骨架（meta、OG、JSON-LD、主题首屏初始化、Web Analytics 上报）
   content/articles/      教程正文（Markdown）
+  content/guides/        「起步」栏目正文（Markdown）
   data/paths.ts          六条学习路线的编排
+  data/og-manifest.json  已生成的预览图清单（由 scripts/generate-og.mjs 写出）
   data/categories.ts     主题定义
   content.config.ts      集合 schema
   lib/                   搜索、SEO 辅助
   scripts/               主题、导航、搜索、复制、目录、进度
   styles/global.css      设计变量与组件样式
-public/                 favicon、OG 图、字体、示例文件
+public/                 favicon、OG 图（og/、og-default.png）、字体、示例文件
 wrangler.jsonc          Cloudflare 部署配置（assets、routes）
 tests/                   smoke.mjs、e2e.mjs、静态服务器
 scripts/generate-og.mjs  OG 图生成
@@ -74,6 +76,10 @@ featured: false
 ---
 ```
 
+`setupNote: true` 会在正文末尾追加一块「账号与额度」提示，只链接 `/start/`，不出现任何外部商店地址——商业链接仅出现在「起步」指南页。目前挂在需要登录/配置的 9 篇上（安装、Windows 环境、第一次任务、权限、项目上下文、CLAUDE.md 等）。
+
+「起步」是独立集合 `src/content/guides/*.md`，URL 为 `/start/<slug>/`，frontmatter 用 `kicker`（栏目标签）、`order`、`faq`（对象数组，用于 FAQPage 结构化数据）而不是 `category`。它不进入六条学习路线，也不计入主题分类。
+
 学习路线按主题分为六条：Codex、Claude Code、MCP、Skills、Agent 与自动化。顺序在 `src/data/paths.ts` 中维护，每条路线的步骤与文章一一对应；文章缺失时路线步骤会显示「待发布」而不是死链，文章为空时各列表页显示空状态。新增教程时同步更新对应路线的步骤与 `order`，上一篇/下一篇会在同一主题内衔接。
 
 ## SEO 维护
@@ -84,6 +90,14 @@ featured: false
 - **可索引范围。** `/search/` 与 404 输出 `noindex, follow` 并已从 sitemap 排除；`robots.txt` 不屏蔽 `/search/`，否则搜索引擎读不到 noindex。
 - **站后验证待补。** 站点已部署，但尚未在 Search Console、Bing Webmaster Tools 或真实搜索里确认抓取、索引与排名；需人工提交 `https://aiguide.zenty.top/sitemap-index.xml`、检查覆盖率报告并观察实际查询表现。
 
+## 社交预览图（OG）
+
+`npm run build` 会先跑 `node scripts/generate-og.mjs`，为每篇教程与每篇「起步」指南生成一张 1200×630 的预览图，存到 `public/og/<kind>/<slug>.png`，并写出 `src/data/og-manifest.json`。页面通过 `src/lib/og.ts` 的 `ogImageFor()` 查表决定 `og:image`，表里没有的条目回落到 `og-default.png`，因此单独跑 `astro build` 也不会产出死链。
+
+- 标题含中文，生成机必须有中文字体（`Microsoft YaHei` / `PingFang SC` / `Noto Sans CJK SC` 任一）。缺字体时会画出方框，换一台有字体的机器重跑 `npm run og` 即可，图片本身已提交在 `public/og/`。
+- 图片随标题与顺序变化：改标题或增删文章后重跑构建，预览图与 `og-manifest.json` 一起更新。
+- 缓存：`/og/` 走 Cloudflare Cache Rule（边缘与浏览器各 24h）。改图后等一天自动过期，或在控制台 Purge 该路径。
+
 ## 部署（Cloudflare Workers）
 
 线上地址 <https://aiguide.zenty.top/> 由 Cloudflare Worker 提供静态资源，构建产物 `dist/` 不进仓库，本地或 CI 构建后上传：
@@ -91,6 +105,8 @@ featured: false
 - `wrangler.jsonc`：`assets.directory` 指向 `dist`，`not_found_handling: "404-page"` 提供自定义 404；`routes` 以 `custom_domain: true` 绑定 `aiguide.zenty.top`。没有 `main`、没有 asset binding，属于纯静态 assets Worker。
 - 站点不含任何服务端代码。`http://` → `https://` 由 zone 级 **Always Use HTTPS**（zone 设置 `always_use_https: on`，2026-11-15 开启）在网络层做 301，因此静态请求仍然是免费且不限量的，不消耗 Worker 调用额度。改这个设置需要 zone 编辑权限；关掉它 `http://` 就会重新返回 200。
 - 部署命令：`npm run deploy`（`npm run build && wrangler deploy`）；`npx wrangler tail` 可看实时日志。
+- **沙箱/受限环境的手工上传。** `wrangler` 需要拉起 esbuild 子进程，在限制 `spawn` 的环境里会 `spawn EPERM`。此时用 `.cf/deploy_assets.py` 走同一套协议：`assets-upload-session`（清单哈希取 sha256 前 32 位并混入 content-type）→ `POST /workers/assets/upload?base64=true`（每个 bucket 返回 202，最后一个返回 201 并带上 completion jwt）→ `PUT /workers/scripts/<name>`（metadata 里带 `assets.jwt`）。注意 content-type 必须逐文件设置，否则整站会以 `application/octet-stream` 下发。
+- **边缘缓存不靠 `_headers`。** `public/_headers` 会随资源一起上线，但通过 assets API 部署时 Cloudflare 不解析它（`/_headers` 会作为普通文件 200 返回）。实际生效的是 zone 级规则：Cache Rule 给 HTML `edge_ttl=3600` + stale-while-revalidate、给 `/_astro/*`/`/fonts/*` 1 年、给 `/og/*` 24 小时；Response Header Transform 把这三类的 `cache-control` 改写成对应值，并补 `X-Content-Type-Options: nosniff`、`Referrer-Policy`。这些规则在控制台维护，不在仓库里；换域名或换 zone 时需要重建。
 - CI：`.github/workflows/deploy.yml` 在推送到 `main` 时依次跑 `npm ci` → `npm run check` → `npm run build` → `npm run test:smoke`；仓库 Secrets 配了 `CLOUDFLARE_API_TOKEN`（权限 `Workers Scripts:Edit`）才会继续执行 `npx wrangler deploy`，没配就只做校验、跳过部署。浏览器测试（`npm run test:e2e`）需要本机浏览器，不进 CI。
 
 ### 部署形态限制

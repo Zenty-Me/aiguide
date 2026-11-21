@@ -8,6 +8,7 @@ difficulty: 进阶
 order: 140
 tags: ["Claude Code", "权限", "安全", "设置", "工具"]
 featured: false
+setupNote: true
 ---
 
 ## 目标：把“允许”拆成三个不同的问题

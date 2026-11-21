@@ -13,6 +13,11 @@ const ARTICLE_IDS = (await readdir(join(root, 'src/content/articles')))
   .map((file) => file.slice(0, -3))
   .sort();
 
+const GUIDE_SLUGS = (await readdir(join(root, 'src/content/guides')))
+  .filter((file) => file.endsWith('.md'))
+  .map((file) => file.slice(0, -3))
+  .sort();
+
 let failures = 0;
 let checks = 0;
 
@@ -25,6 +30,7 @@ function check(condition, message, detail = '') {
 }
 
 check(ARTICLE_IDS.length >= 36, `expected at least 36 source articles, found ${ARTICLE_IDS.length}`);
+check(GUIDE_SLUGS.length >= 3, `expected at least 3 start guides, found ${GUIDE_SLUGS.length}`);
 
 // Read dates from source frontmatter so sitemap/lastmod checks do not trust build output.
 const sourceDates = new Map();
@@ -115,6 +121,8 @@ const expectedRoutes = [
   '/sitemap-index.xml',
   '/favicon.svg',
   '/og-default.png',
+  '/start/index.html',
+  ...GUIDE_SLUGS.map((slug) => `/start/${slug}/index.html`),
   '/categories/codex/index.html',
   '/categories/claude-code/index.html',
   '/categories/agent/index.html',
@@ -135,7 +143,26 @@ for (const id of ARTICLE_IDS) {
   check(/<h1[^>]*>/.test(html), `${route}: missing h1`);
   check((html.match(/<h1[^>]*>/g) ?? []).length === 1, `${route}: expected exactly one h1`);
   check(/application\/ld\+json/.test(html), `${route}: missing JSON-LD`);
-  check(/property="og:image" content="https:\/\/aiguide\.zenty\.top\/og-default\.png"/.test(html), `${route}: og:image not absolute`);
+  check(
+    new RegExp(`property="og:image" content="${SITE}/og/articles/${id}\\.png"`).test(html),
+    `${route}: og:image not the per-article card`,
+  );
+  check(existsSync(join(dist, 'og/articles', `${id}.png`)), `${route}: missing og card on disk`);
+}
+
+// --- start guide contract ----------------------------------------------------
+for (const slug of GUIDE_SLUGS) {
+  const route = `/start/${slug}/index.html`;
+  const html = htmlByPath.get(route);
+  if (!html) continue;
+  check(/<h1[^>]*>/.test(html), `${route}: missing h1`);
+  check((html.match(/<h1[^>]*>/g) ?? []).length === 1, `${route}: expected exactly one h1`);
+  check(/FAQPage/.test(html), `${route}: missing FAQPage structured data`);
+  check(
+    new RegExp(`property="og:image" content="${SITE}/og/guides/${slug}\\.png"`).test(html),
+    `${route}: og:image not the per-guide card`,
+  );
+  check(existsSync(join(dist, 'og/guides', `${slug}.png`)), `${route}: missing og card on disk`);
 }
 
 // --- per-page metadata, links, fragments ------------------------------------

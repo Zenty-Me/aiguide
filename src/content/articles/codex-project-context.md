@@ -8,6 +8,7 @@ difficulty: 入门
 order: 60
 tags: ["Codex", "AGENTS.md", "上下文工程", "配置"]
 featured: false
+setupNote: true
 ---
 
 ## 目标：让它每次都带上正确的项目常识

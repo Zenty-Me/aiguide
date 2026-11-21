@@ -1,0 +1,52 @@
+---
+/**
+ * Contextual note rendered where the reader actually hits the wall: an article
+ * that assumes a working account, or a guide that ends on "so how do I get one".
+ *
+ * `showShop` is off for tutorial pages on purpose — they route to /start/, and
+ * /start/ is where the commercial link lives. Keeping the funnel two steps deep
+ * keeps the tutorial pages useful instead of promotional.
+ */
+interface Props {
+  /** Article or guide slug; used as the campaign name in the outbound URL. */
+  slug: string;
+  title?: string;
+  body?: string;
+  showShop?: boolean;
+}
+
+const {
+  slug,
+  title = '这一步需要可用的账号或额度',
+  body = '上面这些步骤默认你已经有一个能登录的账号，或者一串可用的 API Key。如果还没有，或者不确定自己缺的是哪一种，先看「起步」里的三篇：讲清了订阅、API Key 与转手账号的区别，以及钱花在哪里。',
+  showShop = false,
+} = Astro.props;
+
+const headingId = `setup-note-${slug}`;
+const shopHref = `https://subkit.cc/?utm_source=aiguide&utm_medium=referral&utm_campaign=${encodeURIComponent(slug)}`;
+---
+
+<aside class="mt-16 border-t border-line-strong pt-8" aria-labelledby={headingId}>
+  <p class="meta">账号与额度</p>
+  <h2 id={headingId} class="mt-2 text-lg font-medium leading-relaxed text-ink">{title}</h2>
+  <p class="mt-3 max-w-2xl text-sm leading-7 text-muted">{body}</p>
+  <div class="mt-5 flex flex-wrap items-baseline gap-x-8 gap-y-3">
+    <a class="text-link" href="/start/">
+      阅读「起步」三篇
+      <span class="arrow" aria-hidden="true">→</span>
+    </a>
+    {
+      showShop && (
+        <a
+          class="text-link"
+          href={shopHref}
+          target="_blank"
+          rel="noopener nofollow"
+        >
+          站长自营的订阅与额度渠道
+          <span class="arrow" aria-hidden="true">↗</span>
+        </a>
+      )
+    }
+  </div>
+</aside>

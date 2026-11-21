@@ -2204,7 +2204,8 @@
   }
   @media (min-width: 640px) {
     .footer-cols {
-      gap: 4rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 3rem;
     }
   }
   .footer-col-title {

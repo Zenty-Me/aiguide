@@ -8,6 +8,7 @@ difficulty: 入门
 order: 40
 tags: ["Codex", "CLI", "工作流", "代码审阅"]
 featured: true
+setupNote: true
 ---
 
 ## 目标：跑通“指令 → 改动 → 验收”的闭环

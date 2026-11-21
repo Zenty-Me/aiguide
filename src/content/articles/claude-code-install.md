@@ -8,6 +8,7 @@ difficulty: 入门
 order: 110
 tags: ["Claude Code", "安装", "登录", "CLI", "环境配置"]
 featured: false
+setupNote: true
 ---
 
 ## 目标：装得上、找得到、登得进

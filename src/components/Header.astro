@@ -6,6 +6,7 @@ const isCurrent = (href: string) =>
   href === '/' ? path === '/' : path === href || path.startsWith(href);
 
 const links = [
+  { href: '/start/', label: '起步' },
   { href: '/articles/', label: '教程' },
   { href: '/paths/', label: '学习路线' },
   { href: '/categories/', label: '主题' },

@@ -8,6 +8,7 @@ difficulty: 入门
 order: 10
 tags: ["Codex", "CLI", "安装", "登录", "认证"]
 featured: false
+setupNote: true
 ---
 
 ## 目标：先证明“能读”，再证明“能改”

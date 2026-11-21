@@ -1,0 +1,28 @@
+# Cloudflare Workers static assets honours this file.
+# HTML is identical for every visitor until the next deploy, so let the edge hold
+# it and serve stale while revalidating in the background.
+/*
+  Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/og-default.png
+  Cache-Control: public, max-age=86400
+
+/rss.xml
+  Cache-Control: public, max-age=0, s-maxage=1800, stale-while-revalidate=86400
+
+/search-index.json
+  Cache-Control: public, max-age=0, s-maxage=1800, stale-while-revalidate=86400
+
+/sitemap-index.xml
+  Cache-Control: public, max-age=0, s-maxage=1800
+
+/sitemap-0.xml
+  Cache-Control: public, max-age=0, s-maxage=1800
